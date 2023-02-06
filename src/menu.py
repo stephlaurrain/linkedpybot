@@ -44,7 +44,12 @@ while True:
     menulist = []
     menulist.append(Menuitem("test", False, "test", 0, False))
     menulist.append(Menuitem("simplyconnect", True, "simplyconnect", 0, False))
-    menulist.append(Menuitem("search", True, "search", 0, False))
+    menulist.append(Menuitem("search", True, "search", 0, True))
+    menulist.append(Menuitem("reinit_visited", False, "reinit visited", 0, False))
+    menulist.append(Menuitem("get_visited_list", False, "list ", 0, False))
+    menulist.append(Menuitem("add_to_keyword", False, "add [keyword]", 1, False))
+    menulist.append(Menuitem("get_keyword_list", False, "list keyword table", 0, True))
+
     for idx, menuitem in enumerate(menulist):
         print (mencol(idx, menuitem.command, menuitem.label))
         if menuitem.ret:

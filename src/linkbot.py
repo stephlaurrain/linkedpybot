@@ -20,6 +20,7 @@ import utils.mylog as mylog
 import utils.jsonprms as jsonprms
 import utils.img_utils as img_utils
 from utils.humanize import Humanize
+from dalib.dbcontext import Dbcontext
 from utils.urls import Urls
 from utils.selenium_utils import is_driver_on
 from utils.mydecorators import _error_decorator
@@ -71,6 +72,15 @@ class Bot:
                 self.driver = driver
         
         @_error_decorator()
+        def get_db_context(self, param):
+                self.trace(inspect.stack())
+                dbcontext = Dbcontext(self.log)
+                dbpath = f"{self.root_app}{os.path.sep}data{os.path.sep}database{os.path.sep}{param}"
+                dbcontext.set_dbpath(dbpath)
+                dbcontext.connect()
+                return dbcontext
+
+        @_error_decorator()
         def remove_logs(self):
                 self.trace(inspect.stack())
                 keep_log_time = self.jsprms.prms['keep_log_time']
@@ -91,6 +101,8 @@ class Bot:
                         self.password = self.jsprms.prms['password']
                         self.log.lg("=HERE WE GO=")                        
                         self.remove_logs()
+                        self.dbcontext = self.get_db_context(self.jsprms.prms['dbpath'])
+                        self.log.lg(f"Visited so far {self.dbcontext.visited_count()}")
                         self.log.lg("=Here I am=")                                                  
                           
                 except Exception as e:
@@ -142,7 +154,7 @@ class Bot:
                         urls = Urls(self.jsprms.prms['urls'])  
                         
                         engine_mod = self.live_load('engine')
-                        engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.driver, humanize, self.live_load, urls)                                                
+                        engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.dbcontext, self.driver, humanize, self.live_load, urls)                                                
                         
                         if (command == "simplyconnect"):
                                 self.driver.get(urls.get_url('base'))
@@ -153,6 +165,20 @@ class Bot:
                         if (command == "test"):
                                 engine.testit()
                                 wk = input("waiting : ")
+                        if (command == "reinit_visited"):
+                                self.dbcontext.clean_visited()
+                        if (command == "get_visited_stats"):
+                                visited_stats = self.dbcontext.get_visited_stats()
+                                for visited in visited_stats:
+                                        print(f"{visited}")
+                        if (command == "add_to_keyword"):
+                                if (not self.dbcontext.is_in_keyword(param1)):
+                                        self.dbcontext.add_to_keyword(param1)
+                        if (command == "get_keyword_list"):
+                                keywordlist = self.dbcontext.get_keyword_list()
+                                self.log.lg("Keyword list")
+                                for kw in keywordlist:
+                                        print(f"{kw.word}")
                         if (command == "testsc"):
                                 self.driver.get(urls.get_url('profile'))
                                 while 1==1:                                   

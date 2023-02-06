@@ -25,10 +25,11 @@ from utils.selenium_utils import type_onebyone
 
 class Engine:
 
-        def __init__(self, trace, log, jsprms, driver, humanize, live_load, urls):
+        def __init__(self, trace, log, jsprms, dbcontext, driver, humanize, live_load, urls):
                 self.trace = trace
                 self.log = log
                 self.jsprms = jsprms
+                self.dbcontext = dbcontext
                 self.driver = driver
                 self.humanize = humanize
                 self.live_load = live_load
@@ -40,12 +41,32 @@ class Engine:
                 print("teeet")
         
         # @_error_decorator
-        def get_users_links(self):
+        def visit_users(self):
+                base_url = self.urls.get_url('base')
+                miniprofile = self.urls.get_url('miniprofile')
+                print(miniprofile)
+                for profile in self.visited_this_session:  
+                        url_profile = Template(miniprofile).substitute(base=base_url, profile=profile)                      
+                        self.driver.get(url_profile)
+                        visited = self.dbcontext.get_visited_obj()
+                        visited.url = profile
+                        print(url_profile)
+                        visited.date_visit = datetime.now()               
+                        # print(visited)                        
+                        self.dbcontext.add_to_visited(visited)
+                        self.humanize.wait_human()
+
+        # @_error_decorator
+        def get_users_links(self):                
                 elements = self.driver.find_elements(By.CSS_SELECTOR, 'div > span.entity-result__title-line > span')
                 for el in elements:                        
-                        href = el.find_element(By.TAG_NAME,'a').get_attribute('href') 
-                        print(href)         
-                # self.driver.get(href)
+                        href = el.find_element(By.TAG_NAME,'a').get_attribute('href')
+                        # https://www.linkedin.com/in/amine-haitouf-0a1993209?miniProfileUrn=urn%3Ali%3Afs_miniProfile%3AACoAADUBKbkB3Nx_C1AcKNObeuv-8SVf3_vMQyo                        
+                        url = href.rsplit('/', 1)[1]                     
+                        print(self.dbcontext.is_in_visited(url))
+                        if not self.dbcontext.is_in_visited(url) and not (url in self.visited_this_session): 
+                                self.visited_this_session.append(url)
+                
 
         # @_error_decorator
         def list_user_from_search(self):
@@ -60,10 +81,10 @@ class Engine:
                 self.driver.get(search_url)
 
         # @_error_decorator
-        def do_search(self):
+        def do_search(self, keyword):
                 sel_utils = self.live_load('utils.selenium_utils')
                 element = self.driver.find_element(By.CSS_SELECTOR, '#global-nav-typeahead > input')
-                sel_utils.type_onebyone(self.driver, self.humanize, element, 'python')
+                sel_utils.type_onebyone(self.driver, self.humanize, element, keyword)
                 element.send_keys(Keys.RETURN)
                 self.humanize.wait_human(2,2)
                 
@@ -75,12 +96,11 @@ class Engine:
                 self.driver.get(self.urls.get_url('base'))
                 self.humanize.wait_human(2, 1)
                 
-                self.do_search()
+                self.do_search("javascript")
                 self.list_user_from_search()
+                # self.dbcontext.session.rollback()
                 self.get_users_links()
-                # print(elements)
-                #\35 ebORYRqQSWZmsaipq3WmQ\=\= > div > div.search-results__cluster-bottom-banner.artdeco-button.artdeco-button--tertiary.artdeco-button--muted > a
-                #sel_utils.do_click(element)
+                self.visit_users()
                 
                 
 
