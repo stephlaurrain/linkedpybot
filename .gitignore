@@ -1,0 +1,14 @@
+src/chromeprofile
+src/log
+__pycache__/
+tampermonkey
+.vscode/settings.json
+src/data/conf/default.json
+kept
+src/data/results
+install
+src/utils
+src/data/test.json
+src/js/getnews.js
+src/commands
+src/conv.sh
