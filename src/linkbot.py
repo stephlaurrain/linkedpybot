@@ -163,7 +163,7 @@ class Bot:
                                 engine.search()
                                 wk = input("waiting 4 : ")
                         if (command == "test"):
-                                engine.testit()
+                                engine.testit()                                
                                 wk = input("waiting : ")
                         if (command == "reinit_visited"):
                                 self.dbcontext.clean_visited()

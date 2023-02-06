@@ -13,3 +13,5 @@ src/js/getnews.js
 src/commands
 src/conv.sh
 notes
+src/engine.py
+src/data/database

@@ -53,12 +53,12 @@ class Dbcontext:
         return self.session.query(Visited).count()
     
     # is in
-    def is_in_visited(self, url):
-        return bool(self.session.query(Visited).filter_by(url=url).first())
+    def is_in_visited(self, linkedin_id):
+        return bool(self.session.query(Visited).filter_by(linkedin_id=linkedin_id).first())
     
-    def is_in_visited_recently(self, url, days):
+    def is_in_visited_recently(self, linkedin_id, days):
         datemax = date_utils.get_now_minus_days_at_mn(days=days)
-        return bool(self.session.query(Visited).filter(and_(Visited.url==url, Visited.date_visit>datemax)).first())
+        return bool(self.session.query(Visited).filter(and_(Visited.linkedin_id==linkedin_id, Visited.date_visit>datemax)).first())
      
     def add_to_keyword(self, word):
         keyword = Keyword(word=word)        
@@ -68,8 +68,8 @@ class Dbcontext:
     def is_in_keyword(self, word):
         return bool(self.session.query(Keyword).filter_by(word=word).first())
         
-    def get_visited_line(self, url):     
-        res = self.session.query(Visited).filter(Visited.url==url).first()
+    def get_visited_line(self, linkedin_id):     
+        res = self.session.query(Visited).filter(Visited.linkedin_id==linkedin_id).first()
         return res
 
     # clean
