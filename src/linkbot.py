@@ -7,6 +7,7 @@ import random
 from datetime import datetime
 from time import sleep
 import inspect
+from engine import Engine
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -20,9 +21,12 @@ import utils.mylog as mylog
 import utils.jsonprms as jsonprms
 import utils.img_utils as img_utils
 from utils.humanize import Humanize
-from utils.mydecorators import _error_decorator, _trace_decorator
+from utils.urls import Urls
+from utils.mydecorators import _error_decorator
 from selenium.webdriver.common.action_chains import ActionChains
 
+def test():
+        print('tes')
 
 class Bot:
       
@@ -62,7 +66,15 @@ class Bot:
                 driver.implicitly_wait(self.jsprms.prms['implicitly_wait'])
                 return driver
         
-        def init_main(self, command, jsonfile):
+        @_error_decorator()
+        def remove_logs(self):
+                self.trace(inspect.stack())
+                keep_log_time = self.jsprms.prms['keep_log_time']
+                keep_log_unit = self.jsprms.prms['keep_log_unit']
+                self.log.lg(f"=>clean logs older than {keep_log_time} {keep_log_unit}")                        
+                file_utils.remove_old_files(f"{self.root_app}{os.path.sep}log", keep_log_time, keep_log_unit)                        
+        
+        def init_main(self, jsonfile):
                 try:
                         self.root_app = os.getcwd()
                         self.log = mylog.Log()
@@ -74,10 +86,9 @@ class Bot:
                         self.login = self.jsprms.prms['login']
                         self.password = self.jsprms.prms['password']
                         self.log.lg("=HERE WE GO=")                        
-                        keep_log_time = self.jsprms.prms['keep_log_time']
-                        keep_log_unit = self.jsprms.prms['keep_log_unit']
-                        self.log.lg(f"=>clean logs older than {keep_log_time} {keep_log_unit}")   
-                        file_utils.remove_old_files(f"{self.root_app}{os.path.sep}log", keep_log_time, keep_log_unit)
+                        self.remove_logs()
+                        self.log.lg("=Here I am=")                
+                        self.driver = self.init_webdriver()     
                 except Exception as e:
                         self.log.errlg(f"Wasted ! : {e}")
                         raise
@@ -91,14 +102,15 @@ class Bot:
                 actionChain = ActionChains(self.driver)              
                 actionChain.move_to_element_with_offset(element, xAxis, yAxis).click().perform()
                 
-        def get_news (self):
+        def get_news(self):
                 jsfile = f"{self.root_app}{os.path.sep}js{os.path.sep}getnews.js"                
                 res = self.driver.execute_script(scrpt)     
+        
+        
 
         def main(self, command="", jsonfile="", param1="", param2=""):                          
-                self.trace(inspect.stack())  
-                try:
-                        # InitBot
+                try:          
+                        self.trace(inspect.stack())               
                         if command == "":
                                 nb_args = len(sys.argv)
                                 command = "test" if (nb_args == 1) else sys.argv[1]
@@ -106,25 +118,26 @@ class Bot:
                                 jsonfile = "default" if (nb_args < 3) else sys.argv[2].lower()                                
                                 param1 = "default" if (nb_args < 4) else sys.argv[3].lower()
                                 param2 = "default" if (nb_args < 5) else sys.argv[4].lower()
-                                param3 = "default" if (nb_args < 6) else sys.argv[5].lower()      
-                                print("params=", command, jsonfile, param1, param2)
-                        # logs
-                                                
-                        # debug
-                        self.init_main(command, jsonfile)
+                                #param3 = "default" if (nb_args < 6) else sys.argv[5].lower()      
+                                print("params=", command, jsonfile, param1, param2)                        
+                        # debug screen shot
                         # if (command == "conv"):
                         #        img_utils.convert_dir_to_webp(f"{self.root_app}{os.path.sep}data{os.path.sep}results", rm_source=True)
-                        #        exit()
-                        
-                        self.driver = self.init_webdriver() 
-                        self.offset_wait = 20
-                        self.wait = 20
+                        #        exit()                         
+                        humanize = Humanize(self.trace, self.log, self.jsprms.prms['offset_wait'], self.jsprms.prms['wait'], self.jsprms.prms['default_wait'])                       
+                        urls = Urls(self.jsprms.prms['urls'])                                      
+                        engine = Engine(self.trace, self.log, self.jsprms, self.driver, humanize, urls)                                                
                         if (command == "login"):
-                                self.driver.get("https://linkedin.com")
+                                self.driver.get(urls.get_url('base'))
                                 wk = input("waiting : ")
-                     
+                        if (command == "search"):
+                                wk = input("waiting : ")
+                                self.driver.get(urls.get_url('base'))
+                                humanize.wait_human(5, 1)
+                                engine.search()
+                                wk = input("waiting : ")
                         if (command == "test"):
-                                self.driver.get("https://linkedin.com")
+                                self.driver.get(urls.get_url('profile'))
                                 while 1==1:                                   
                                         wk = input("wait key 4 screenshot (x to exit) : ")
                                         if wk =="x":
@@ -146,10 +159,12 @@ class Bot:
                         pass
                 except Exception as e:
                         print("GLOBAL MAIN EXCEPTION")
+                        self.driver.close()
                         self.log.errlg(e)
                         # raise
                         #
                 finally:
+                        self.driver.close()
                         print("do disconnect")                        
 
 

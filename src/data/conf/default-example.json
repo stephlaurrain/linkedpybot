@@ -4,6 +4,8 @@
     "freemode":true,
     "keep_log_time":1,
     "keep_log_unit":"m",    
+    "urls": [
+        {"name":"base", "url":"https://www.linkedin.com"}],
     "login":"yourlogin@yourdomain.ext",
     "password":"your password",    
     "defaultwait":25,
