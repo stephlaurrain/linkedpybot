@@ -33,6 +33,8 @@ class Engine:
                 self.root_app = os.getcwd()
                 self.visited_this_session = list()
 
+        def testit(self):
+                print("test0t")
         
         @_error_decorator(False)
         def search(self):
@@ -41,7 +43,7 @@ class Engine:
                 self.humanize(1,2)
                 element = self.driver.find_element(By.CSS_SELECTOR, '#global-nav-typeahead > input')
                 type_onebyone(self.driver, self.humanize, element, 'python')
-                
+
 
 
             

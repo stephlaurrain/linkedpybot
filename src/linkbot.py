@@ -7,7 +7,6 @@ import random
 from datetime import datetime
 from time import sleep
 import inspect
-from engine import Engine
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -22,15 +21,18 @@ import utils.jsonprms as jsonprms
 import utils.img_utils as img_utils
 from utils.humanize import Humanize
 from utils.urls import Urls
+from utils.selenium_utils import is_driver_on
 from utils.mydecorators import _error_decorator
 from selenium.webdriver.common.action_chains import ActionChains
+import importlib
 
 def test():
         print('tes')
 
 class Bot:
       
-        #def __init__(self):                
+        def __init__(self):                
+                self.driver = None
 
         def trace(self,stck):                
                 self.log.lg(f"{stck[0].function} ({ stck[0].filename}-{stck[0].lineno})")
@@ -39,6 +41,8 @@ class Bot:
         @_error_decorator()
         def init_webdriver(self):
                 self.trace(inspect.stack())
+                if is_driver_on(self.driver):
+                        return 
                 options = webdriver.ChromeOptions()
                 if (self.jsprms.prms['headless']):
                         options.add_argument("--headless")
@@ -87,8 +91,8 @@ class Bot:
                         self.password = self.jsprms.prms['password']
                         self.log.lg("=HERE WE GO=")                        
                         self.remove_logs()
-                        self.log.lg("=Here I am=")                
-                        self.driver = self.init_webdriver()     
+                        self.log.lg("=Here I am=")                                                  
+                          
                 except Exception as e:
                         self.log.errlg(f"Wasted ! : {e}")
                         raise
@@ -123,11 +127,22 @@ class Bot:
                         # debug screen shot
                         # if (command == "conv"):
                         #        img_utils.convert_dir_to_webp(f"{self.root_app}{os.path.sep}data{os.path.sep}results", rm_source=True)
-                        #        exit()                         
+                        #        exit()              
+                        
                         humanize = Humanize(self.trace, self.log, self.jsprms.prms['offset_wait'], self.jsprms.prms['wait'], self.jsprms.prms['default_wait'])                       
-                        urls = Urls(self.jsprms.prms['urls'])                                      
-                        engine = Engine(self.trace, self.log, self.jsprms, self.driver, humanize, urls)                                                
-                        if (command == "login"):
+                        urls = Urls(self.jsprms.prms['urls'])  
+                        
+                        engine_mod = importlib.import_module('engine')  
+                                              
+                        for mod in sys.modules:
+                                del_engine = 'engine' in mod
+                        if del_engine:
+                                del sys.modules['engine'] 
+                        engine_mod = importlib.import_module('engine')
+                        importlib.reload(engine_mod)
+                        engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.driver, humanize, urls)                                                
+                        
+                        if (command == "simplyconnect"):
                                 self.driver.get(urls.get_url('base'))
                                 wk = input("waiting : ")
                         if (command == "search"):
@@ -137,6 +152,9 @@ class Bot:
                                 engine.search()
                                 wk = input("waiting : ")
                         if (command == "test"):
+                                engine.testit()
+                                wk = input("waiting : ")
+                        if (command == "testsc"):
                                 self.driver.get(urls.get_url('profile'))
                                 while 1==1:                                   
                                         wk = input("wait key 4 screenshot (x to exit) : ")
@@ -148,7 +166,7 @@ class Bot:
                                         height = self.driver.execute_script("return document.body.scrollHeight")
                                         self.driver.save_screenshot(fullfilepath)
                                         img_utils.convert_to_webp(fullfilepath, 'jpg', rm_source=True)
-                        self.driver.close()
+                        #self.driver.close()
                         ##)  
 
                         #ONGLETS
@@ -159,13 +177,17 @@ class Bot:
                         pass
                 except Exception as e:
                         print("GLOBAL MAIN EXCEPTION")
-                        self.driver.close()
+                        #self.driver.close()
+                        #self.driver.quit()
+                        print(f"{inspect.stack()[1].function} {inspect.stack()[1].lineno}")
                         self.log.errlg(e)
                         # raise
                         #
                 finally:
-                        self.driver.close()
-                        print("do disconnect")                        
+                        #self.driver.close()
+                        #self.driver.quit()
+                
+                        print("Finally")                        
 
 
               

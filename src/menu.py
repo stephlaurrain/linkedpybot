@@ -1,35 +1,26 @@
 import os
 import sys
 import gc
-# from linkbot import Bot
+from linkbot import Bot
 from datetime import datetime
 import importlib
 
 class Menuitem:
-    def __init__(self, command, label, nbparams, ret):
+    def __init__(self, command, init_driver, label, nbparams, ret):
         self.command = command
+        self.init_driver = init_driver
         self.label = label
         self.nbparams = nbparams
         self.ret = ret
 
 rootApp = os.getcwd()
-
-linkbot = importlib.import_module('linkbot')
-
-linkbot.test()
-input('waiting : ')
-importlib.reload(linkbot)
-linkbot.test()
-
-
-exit()
-def dotail(profil):
-    logFilename = "{0}{1}log{1}{3}{2}.log".format(rootApp, os.path.sep, profil, dnow)
-    os.system("tail -f {0}".format(logFilename))
-
 hardgreen = "\033[32m\033[1m"
 normalgreen = "\033[32m\033[2m"
 normalcolor = "\033[0m"
+
+def dotail(profil):
+    logFilename = "{0}{1}log{1}{3}{2}.log".format(rootApp, os.path.sep, profil, dnow)
+    os.system("tail -f {0}".format(logFilename))
 
 def mencol(nb, fonc, comment):
     return "{0}{3} - {4} {1} - {5}{2}".format(hardgreen, normalgreen, normalcolor, nb, fonc, comment)
@@ -42,42 +33,36 @@ def clear():
 
 nbargs = len(sys.argv)
 jsonfilefromarg = "default" if (nbargs == 1) else sys.argv[1]
-
 clear()
 
-module = importlib.import_module(mainmodname)
 bot = Bot()
 bot.init_main(jsonfilefromarg)
 while True:
-    #recharge le module si modif
-    
     print(drkcol("\nHi Neo, I'm the Linkedin bot"))
     print(drkcol("Your wish is my order\n"))
     print(drkcol("What I can do for you :\n"))
-
     menulist = []
-    menulist.append(Menuitem("search", "search", 0, False))
-    # menulist.append(Menuitem("simplyconnect", "simply connect", 0, False))
-    # menulist.append(Menuitem("getsessions", "get sessions elements", 0, False))
-
+    menulist.append(Menuitem("test", False, "test", 0, False))
+    menulist.append(Menuitem("simplyconnect", True, "simplyconnect", 0, False))
+    menulist.append(Menuitem("search", True, "search", 0, False))
     for idx, menuitem in enumerate(menulist):
         print (mencol(idx, menuitem.command, menuitem.label))
         if menuitem.ret:
             print(drkcol("#####"))
-
     print(drkcol("#####"))
     print(mencol("93", "editparams", "edit default.json"))
     print(mencol("99", "exit", "exit this menu"))
     dothat = input(drkcol("\n\nReady to rock : "))
     today = datetime.now()
     dnow = today.strftime(r"%y%m%d")
-  
     if dothat == "93":
         print(drkcol("\edit params -r\n"))
         os.system("nano data/conf/default.json")    
     if dothat == "99":
         print(drkcol("\nsee you soon, Neo\n"))
-        bot.driver.close()
+        if item.init_driver:
+                bot.driver.close()
+                bot.driver.quit()
         del bot
         gc.collect
         quit()
@@ -86,16 +71,16 @@ while True:
             cmdstr = "nop"
             item = menulist[int(dothat)]
             cmd = item.command
-            print (cmd)
+            if item.init_driver:
+                bot.init_webdriver()                                
             prms = int(item.nbparams)
             prmcmdlist = []
             for i in range(prms):
                 prmcmdlist.append(input(drkcol(f"enter param {i} :")))
             prm2 = "" if (len(prmcmdlist) < 1) else prmcmdlist[0]
-            prm3 = "" if (len(prmcmdlist) < 2) else prmcmdlist[1]
-            bot.main(cmd, jsonfilefromarg, prm2, prm3)
-            break
-            
+            prm3 = "" if (len(prmcmdlist) < 2) else prmcmdlist[1]            
+            bot.main(cmd, jsonfilefromarg, prm2, prm3)            
     except Exception as e:
         print (e)
         print(f"\n{hardgreen}bad command (something went wrong){normalcolor}\n")
+    
