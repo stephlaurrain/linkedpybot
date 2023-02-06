@@ -61,8 +61,9 @@ while True:
     if dothat == "99":
         print(drkcol("\nsee you soon, Neo\n"))
         if item.init_driver:
-                bot.driver.close()
-                bot.driver.quit()
+                if bot.driver != None:
+                    bot.driver.close()
+                    bot.driver.quit()
         del bot
         gc.collect
         quit()

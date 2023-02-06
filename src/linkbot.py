@@ -41,7 +41,7 @@ class Bot:
         @_error_decorator()
         def init_webdriver(self):
                 self.trace(inspect.stack())
-                if is_driver_on(self.driver):
+                if self.driver != None:
                         return 
                 options = webdriver.ChromeOptions()
                 if (self.jsprms.prms['headless']):
@@ -68,7 +68,7 @@ class Bot:
                 # driver.set_window_position(0, 0, windowHandle=) #, windowHandle='current')
                 driver.maximize_window()
                 driver.implicitly_wait(self.jsprms.prms['implicitly_wait'])
-                return driver
+                self.driver = driver
         
         @_error_decorator()
         def remove_logs(self):
@@ -114,7 +114,7 @@ class Bot:
         def live_load(self, module_name):
                 # live_mod = importlib.import_module(module_name)  
                 for mod in sys.modules:
-                        del_engine = module_name in mod
+                        del_engine = module_name == mod  # voir in
                 if del_engine:
                         del sys.modules[module_name] 
                 live_mod = importlib.import_module(module_name)
@@ -142,17 +142,14 @@ class Bot:
                         urls = Urls(self.jsprms.prms['urls'])  
                         
                         engine_mod = self.live_load('engine')
-                        engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.driver, humanize, urls)                                                
+                        engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.driver, humanize, self.live_load, urls)                                                
                         
                         if (command == "simplyconnect"):
                                 self.driver.get(urls.get_url('base'))
                                 wk = input("waiting : ")
-                        if (command == "search"):
-                                wk = input("waiting : ")
-                                self.driver.get(urls.get_url('base'))
-                                humanize.wait_human(5, 1)
+                        if (command == "search"):                                                                
                                 engine.search()
-                                wk = input("waiting : ")
+                                wk = input("waiting 4 : ")
                         if (command == "test"):
                                 engine.testit()
                                 wk = input("waiting : ")
