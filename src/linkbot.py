@@ -110,7 +110,16 @@ class Bot:
                 jsfile = f"{self.root_app}{os.path.sep}js{os.path.sep}getnews.js"                
                 res = self.driver.execute_script(scrpt)     
         
-        
+        # loading and refreshing module
+        def live_load(self, module_name):
+                # live_mod = importlib.import_module(module_name)  
+                for mod in sys.modules:
+                        del_engine = module_name in mod
+                if del_engine:
+                        del sys.modules[module_name] 
+                live_mod = importlib.import_module(module_name)
+                importlib.reload(live_mod)
+                return live_mod
 
         def main(self, command="", jsonfile="", param1="", param2=""):                          
                 try:          
@@ -132,14 +141,7 @@ class Bot:
                         humanize = Humanize(self.trace, self.log, self.jsprms.prms['offset_wait'], self.jsprms.prms['wait'], self.jsprms.prms['default_wait'])                       
                         urls = Urls(self.jsprms.prms['urls'])  
                         
-                        engine_mod = importlib.import_module('engine')  
-                                              
-                        for mod in sys.modules:
-                                del_engine = 'engine' in mod
-                        if del_engine:
-                                del sys.modules['engine'] 
-                        engine_mod = importlib.import_module('engine')
-                        importlib.reload(engine_mod)
+                        engine_mod = self.live_load('engine')
                         engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.driver, humanize, urls)                                                
                         
                         if (command == "simplyconnect"):
