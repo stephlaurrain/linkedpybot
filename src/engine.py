@@ -105,25 +105,28 @@ class Engine:
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def search(self):                
                 self.trace(inspect.stack()) 
-                self.driver.get(self.urls.get_url('base'))
-                self.humanize.wait_human(2, 1)
-                self.do_search("python")
-                self.humanize.wait_human(2, 1)
-                self.list_user_from_search()
-                self.humanize.wait_human(3, 3)
-                # self.dbcontext.session.rollback()
-                nb_page = self.jsprms.prms['result_page_nb']                
-                for i in range(nb_page):
-                        self.get_users_links()                        
-                        # wk = input("analyse (b to break) : ")
-                        # if wk == 'b':
-                        #        break
-                        but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")                        
-                        but_suivant.click()                        
-                        self.humanize.wait_human(5, 5)
-                print("#### List to visit #####")
-                for vis in self.url_to_visit:
-                        print(vis)
-                self.bot_utils.remove_stop()
-                self.visit_users()
+
+                keywords = self.dbcontext.get_keyword_list()
+                for kw in keywords:
+                        self.driver.get(self.urls.get_url('base'))
+                        self.humanize.wait_human(2, 1)
+                        self.do_search(kw)
+                        self.humanize.wait_human(2, 1)
+                        self.list_user_from_search()
+                        self.humanize.wait_human(3, 3)
+                        # self.dbcontext.session.rollback()
+                        nb_page = self.jsprms.prms['result_page_nb']                
+                        for i in range(nb_page):
+                                self.get_users_links()                        
+                                # wk = input("analyse (b to break) : ")
+                                # if wk == 'b':
+                                #        break
+                                but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")                        
+                                but_suivant.click()                        
+                                self.humanize.wait_human(5, 5)
+                        print("#### List to visit #####")
+                        for vis in self.url_to_visit:
+                                print(vis)
+                        self.bot_utils.remove_stop()
+                        self.visit_users()
                 self.log.lg(f"TOTAL VISITED THIS SESSION = {len(self.visited_this_session)}")
