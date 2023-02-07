@@ -111,9 +111,10 @@ class Engine:
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def click_next(self): 
                 self.trace(inspect.stack())   
-                self.sel_utils.try_click(By.CSS_SELECTOR, "[aria-label='Suivant']", 10, 20)     
-                return       
+                # not working self.sel_utils.try_click(By.CSS_SELECTOR, "[aria-label='Suivant']", 10, 20)                     
                 print (f'READY STATE = {self.driver.execute_script("return document.readyState")}')
+                self.sel_utils.get_state()
+                self.sel_utils.scroll_down_infinite()
                 for i in range(10):
                         try:
                                 # http://allselenium.info/wait-for-elements-python-selenium-webdriver/
@@ -126,18 +127,22 @@ class Engine:
                         except Exception as e:                                
                                 self.log.lg(f"FAILED TO CLICK NEXT = {e}")                                 
                                 self.driver.refresh()
+                                self.sel_utils.scroll_down_infinite()
                                                 
 
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def search(self):                
                 self.trace(inspect.stack()) 
                 # keywordlist = self.dbcontext.get_keyword_list()
+                url_base = self.urls.get_url('base')
+                feed = self.urls.get_url('feed')
+                url_feed = Template(feed).substitute(base=url_base)
                 keywordlist = self.jsprms.prms['keywords']                
                 print(len(keywordlist))                
                 for kw in keywordlist:
                         self.log.lg(f"==>KEYWORD = {kw}")
-                        self.id_to_visit_list = list()
-                        self.driver.get(self.urls.get_url('base'))
+                        self.id_to_visit_list = list()                                  
+                        self.driver.get(url_feed)
                         self.humanize.wait_human(2, 1)
                         self.do_search(kw)
                         self.humanize.wait_human(2, 1)
