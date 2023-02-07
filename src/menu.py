@@ -33,6 +33,7 @@ def clear():
 
 nbargs = len(sys.argv)
 jsonfilefromarg = "default" if (nbargs == 1) else sys.argv[1]
+mode_menu = "default" if (nb_args < 3) else sys.argv[2]
 clear()
 
 bot = Bot()
@@ -45,7 +46,8 @@ while True:
     menulist.append(Menuitem("test", False, "test", 0, False))
     menulist.append(Menuitem("simplyconnect", True, "simplyconnect", 0, False))
     menulist.append(Menuitem("search", True, "search", 0, True))
-    menulist.append(Menuitem("reinit_visited", False, "reinit visited", 0, False))
+    if mode_menu == "advanced":
+        menulist.append(Menuitem("reinit_visited", False, "reinit visited", 0, False))
     menulist.append(Menuitem("get_visited_list", False, "list ", 0, False))
     menulist.append(Menuitem("add_to_keyword", False, "add [keyword]", 1, False))
     menulist.append(Menuitem("get_keyword_list", False, "list keyword table", 0, True))
@@ -55,11 +57,14 @@ while True:
         if menuitem.ret:
             print(drkcol("#####"))
     print(drkcol("#####"))
+    print(mencol("66", "advanced", "advanced menu"))
     print(mencol("93", "editparams", "edit default.json"))
     print(mencol("99", "exit", "exit this menu"))
     dothat = input(drkcol("\n\nReady to rock : "))
     today = datetime.now()
     dnow = today.strftime(r"%y%m%d")
+    if dothat == "66":
+        mode_menu = "advanced"
     if dothat == "93":
         print(drkcol("\edit params -r\n"))
         os.system("nano data/conf/default.json")    
