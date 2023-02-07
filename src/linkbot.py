@@ -70,7 +70,7 @@ class Bot:
                 # resolve the unreachable
                 # driver.set_window_size(1900, 1080)
                 # driver.set_window_position(0, 0, windowHandle=) #, windowHandle='current')
-                # driver.maximize_window()
+                driver.maximize_window()
                 driver.implicitly_wait(self.jsprms.prms['implicitly_wait'])
                 self.driver = driver
         

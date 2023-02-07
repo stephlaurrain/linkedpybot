@@ -45,7 +45,7 @@ class Dbcontext:
             group_by(func.strftime("%d-%m-%Y", Visited.date_first_visit)).order_by( Visited.date_first_visit).all()
     
     def get_keyword_list(self):
-        return self.session.query(Keyword).order_by(Keyword.word).all()
+        return self.session.query(Keyword).all() #.order_by(Keyword.word).all()
     
     
     #count

@@ -62,6 +62,9 @@ class Engine:
                         self.dbcontext.add_to_visited(visited)
                         self.log.lg(f"VISITED THIS SESSION = {len(self.visited_this_session)}")
                         self.humanize.wait_human()
+                        if len(self.visited_this_session) >= self.jsprms.prms['visit_limit']:
+                                self.log.lg(f"VISITED TO THE LIMIT")
+                                break
 
         # @_error_decorator
         def get_users_links(self):          
@@ -103,31 +106,43 @@ class Engine:
                 self.humanize.wait_human(2,2)
 
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
+        def click_next(self): 
+                self.trace(inspect.stack()) 
+                # http://allselenium.info/wait-for-elements-python-selenium-webdriver/
+                # wait for Fastrack menu item to appear, then click it
+                but_suivant = WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "[aria-label='Suivant']")))                
+                # but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")                        
+                but_suivant.click()                        
+
+        # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def search(self):                
                 self.trace(inspect.stack()) 
 
-                keywordlist = self.dbcontext.get_keyword_list()
+                # keywordlist = self.dbcontext.get_keyword_list()
+                keywordlist = self.jsprms.prms['keywords']                
                 print(len(keywordlist))                
                 for kw in keywordlist:
+                        self.log.lg(f"==>KEYWORD = {kw}")
+                        self.url_to_visit = list()
                         self.driver.get(self.urls.get_url('base'))
                         self.humanize.wait_human(2, 1)
-                        self.do_search(kw.word)
+                        self.do_search(kw)
                         self.humanize.wait_human(2, 1)
                         self.list_user_from_search()
                         self.humanize.wait_human(3, 3)
                         # self.dbcontext.session.rollback()
-                        nb_page = self.jsprms.prms['result_page_nb']                
+                        nb_page = self.jsprms.prms['result_page_nb']
                         for i in range(nb_page):
                                 self.get_users_links()                        
                                 # wk = input("analyse (b to break) : ")
                                 # if wk == 'b':
                                 #        break
-                                but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")                        
-                                but_suivant.click()                        
+                                self.click_next()
+                                
                                 self.humanize.wait_human(5, 5)
                         print("#### List to visit #####")
                         for vis in self.url_to_visit:
                                 print(vis)
                         self.bot_utils.remove_stop()
-                        self.visit_users()
+                        self.visit_users()                        
                 self.log.lg(f"TOTAL VISITED THIS SESSION = {len(self.visited_this_session)}")
