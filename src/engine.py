@@ -20,7 +20,7 @@ import utils.file_utils as file_utils
 from utils.urls import Urls
 from utils.mydecorators import _error_decorator
 from utils.selenium_utils import type_onebyone
-
+from utils.bot_utils import Bot_utils
 
 
 class Engine:
@@ -37,6 +37,7 @@ class Engine:
                 self.root_app = os.getcwd()
                 self.url_to_visit = list()
                 self.visited_this_session = list()
+                self.bot_utils = Bot_utils(trace=self.trace, log=self.log, jsprms=self.jsprms)
 
         def testit(self):
                 print("teeet")
@@ -47,6 +48,8 @@ class Engine:
                 base_url = self.urls.get_url('base')
                 miniprofile = self.urls.get_url('miniprofile')              
                 for profile in self.url_to_visit:  
+                        if self.bot_utils.stop():
+                                break
                         url_profile = Template(miniprofile).substitute(base=base_url, profile=profile)                      
                         self.driver.get(url_profile)
                         linkedin_id = profile.split('?')[0]
@@ -100,7 +103,7 @@ class Engine:
                 self.humanize.wait_human(2,2)
 
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
-        def search(self):
+        def search(self):                
                 self.trace(inspect.stack()) 
                 self.driver.get(self.urls.get_url('base'))
                 self.humanize.wait_human(2, 1)
@@ -121,5 +124,6 @@ class Engine:
                 print("#### List to visit #####")
                 for vis in self.url_to_visit:
                         print(vis)
+                self.bot_utils.remove_stop()
                 self.visit_users()
                 self.log.lg(f"TOTAL VISITED THIS SESSION = {len(self.visited_this_session)}")
