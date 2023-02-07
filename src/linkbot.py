@@ -54,14 +54,19 @@ class Bot:
                 options.add_experimental_option("excludeSwitches", ["enable-automation"])
                 options.add_experimental_option('useAutomationExtension', False)
                 # pi / docker
+                options.add_argument("--start-maximized")
                 if (self.jsprms.prms['box']):
                         options.add_argument("--no-sandbox")
                         options.add_argument("--disable-dev-shm-usage")
                         options.add_argument("--disable-gpu")
-                        prefs = {"profile.managed_default_content_settings.images": 2}
-                        options.add_experimental_option("prefs", prefs)
-                # options.add_argument(f"user-agent={self.jsprms.prms['user_agent']}")
-                options.add_argument("--start-maximized")
+                        prefs = {"profile.managed_default_content_settings.images": 2}  
+                        options.add_experimental_option("prefs", prefs)   
+                        driver = webdriver.Chrome(executable_path=self.chromedriver_bin_path, options=options)
+                else:
+                        prefs = {"profile.managed_default_content_settings.images": 1}
+                        options.add_experimental_option("prefs", prefs)   
+                        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+                # options.add_argument(f"user-agent={self.jsprms.prms['user_agent']}")                
                 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)                                  
                 driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
                 # resolve the unreachable
@@ -97,6 +102,7 @@ class Bot:
                         jsonFn = f"{self.root_app}{os.path.sep}data{os.path.sep}conf{os.path.sep}{jsonfile}.json"                        
                         self.jsprms = jsonprms.Prms(jsonFn)                        
                         self.test = self.jsprms.prms['test']
+                        self.chromedriver_bin_path = self.jsprms.prms['chromedriver']
                         self.login = self.jsprms.prms['login']
                         self.password = self.jsprms.prms['password']
                         self.log.lg("=HERE WE GO=")                        
