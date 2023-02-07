@@ -31,8 +31,8 @@ def drkcol(str):
 def clear():
     return os.system('clear')
 
-nbargs = len(sys.argv)
-jsonfilefromarg = "default" if (nbargs == 1) else sys.argv[1]
+nb_args = len(sys.argv)
+jsonfilefromarg = "default" if (nb_args == 1) else sys.argv[1]
 mode_menu = "default" if (nb_args < 3) else sys.argv[2]
 clear()
 
