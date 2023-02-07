@@ -1,18 +1,25 @@
 {
     "dbpath":"default.db",
-    "test":true,
+    "chromedriver":"/usr/bin/chromedriver", 
+    "test":true,    
     "freemode":true,
     "keep_log_time":1,
-    "keep_log_unit":"m",    
+    "keep_log_unit":"m",   
     "urls": [
-        {"name":"base", "url":"https://www.linkedin.com"}],
-    "login":"yourlogin@yourdomain.ext",
-    "password":"your password",    
-    "defaultwait":25,
-    "offsetwait":25,
+        {"name":"base", "url":"https://www.linkedin.com"},
+        {"name":"miniprofile", "url":"$base/in/$profile"}],
+    "keywords": [
+            "cabinet recrutement it"
+    ],
+    "visit_limit":15,
+    "login":"test@test.com",
+    "password":"whatyouneed",    
+    "default_wait":180,
+    "offset_wait":180,
     "wait":20,
     "implicitly_wait":10,
-    "scrollwait":true,            
+    "result_page_nb":2,
+    "scroll_wait":true,            
     "headless":false,
-    "box":false    
+    "box":false
 }
