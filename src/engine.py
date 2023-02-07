@@ -106,11 +106,12 @@ class Engine:
         def search(self):                
                 self.trace(inspect.stack()) 
 
-                keywords = self.dbcontext.get_keyword_list()
-                for kw in keywords:
+                keywordlist = self.dbcontext.get_keyword_list()
+                print(len(keywordlist))                
+                for kw in keywordlist:
                         self.driver.get(self.urls.get_url('base'))
                         self.humanize.wait_human(2, 1)
-                        self.do_search(kw)
+                        self.do_search(kw.word)
                         self.humanize.wait_human(2, 1)
                         self.list_user_from_search()
                         self.humanize.wait_human(3, 3)
