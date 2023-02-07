@@ -35,6 +35,7 @@ class Engine:
                 self.live_load = live_load
                 self.urls = urls
                 self.root_app = os.getcwd()
+                self.url_to_visit = list()
                 self.visited_this_session = list()
 
         def testit(self):
@@ -45,34 +46,36 @@ class Engine:
                 self.trace(inspect.stack()) 
                 base_url = self.urls.get_url('base')
                 miniprofile = self.urls.get_url('miniprofile')              
-                for profile in self.visited_this_session:  
+                for profile in self.url_to_visit:  
                         url_profile = Template(miniprofile).substitute(base=base_url, profile=profile)                      
                         self.driver.get(url_profile)
+                        linkedin_id = profile.split('?')[0]
+                        self.visited_this_session.append(linkedin_id)
                         visited = self.dbcontext.get_visited_obj()
-                        visited.linkedin_id = profile.split('?')[0]
-                        print(url_profile)
+                        visited.linkedin_id = linkedin_id
+                        # print(url_profile)
                         visited.date_visit = datetime.now()               
                         # print(visited)                        
                         self.dbcontext.add_to_visited(visited)
+                        self.log.lg(f"VISITED THIS SESSION = {len(self.visited_this_session)}")
                         self.humanize.wait_human()
 
         # @_error_decorator
         def get_users_links(self):          
-                self.trace(inspect.stack())       
+                self.trace(inspect.stack())                       
                 # elements = self.driver.find_elements(By.CSS_SELECTOR, ".entity-result__content");
                 elements = self.driver.find_elements(By.CLASS_NAME, "reusable-search__result-container")
-                print(len(elements))
+                print(f"found {len(elements)}")
                 #div > span.entity-result__title-line > span')
                 for el in elements:                        
                         href = el.find_element(By.TAG_NAME,'a').get_attribute('href')
-                        print(href)                     
+                        # print(href)                     
                         # https://www.linkedin.com/in/amine-haitouf-0a1993209?miniProfileUrn=urn%3Ali%3Afs_miniProfile%3AACoAADUBKbkB3Nx_C1AcKNObeuv-8SVf3_vMQyo                        
                         url = href.rsplit('/', 1)[1]
                         linkedin_id = url.split('?')[0]
                         # print(self.dbcontext.is_in_visited(url))
-                        if not self.dbcontext.is_in_visited(linkedin_id) and not (url in self.visited_this_session): 
-                                self.visited_this_session.append(url)
-                
+                        if not self.dbcontext.is_in_visited(linkedin_id) and not (url in self.url_to_visit): 
+                                self.url_to_visit.append(url)
 
         # @_error_decorator
         def list_user_from_search(self):
@@ -95,13 +98,10 @@ class Engine:
                 sel_utils.type_onebyone(self.driver, self.humanize, element, keyword)
                 element.send_keys(Keys.RETURN)
                 self.humanize.wait_human(2,2)
-                
 
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def search(self):
                 self.trace(inspect.stack()) 
-
-              
                 self.driver.get(self.urls.get_url('base'))
                 self.humanize.wait_human(2, 1)
                 self.do_search("python")
@@ -116,13 +116,10 @@ class Engine:
                         # if wk == 'b':
                         #        break
                         but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")                        
-                        but_suivant.click()
+                        but_suivant.click()                        
                         self.humanize.wait_human(5, 5)
-                for vis in self.visited_this_session:
+                print("#### List to visit #####")
+                for vis in self.url_to_visit:
                         print(vis)
                 self.visit_users()
-                
-                
-
-
-            
+                self.log.lg(f"TOTAL VISITED THIS SESSION = {len(self.visited_this_session)}")
