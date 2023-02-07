@@ -22,7 +22,6 @@ import utils.img_utils as img_utils
 from utils.humanize import Humanize
 from dalib.dbcontext import Dbcontext
 from utils.urls import Urls
-from utils.selenium_utils import is_driver_on
 from utils.mydecorators import _error_decorator
 from selenium.webdriver.common.action_chains import ActionChains
 import importlib
@@ -164,7 +163,7 @@ class Bot:
                                 wk = input("waiting : ")
                         if (command == "search"):                                                                
                                 engine.search()
-                                wk = input("waiting 4 : ")
+                                # wk = input("waiting 4 : ")
                         if (command == "test"):
                                 engine.testit()                                
                                 wk = input("waiting : ")

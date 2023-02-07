@@ -19,7 +19,7 @@ import utils.str_utils as str_utils
 import utils.file_utils as file_utils
 from utils.urls import Urls
 from utils.mydecorators import _error_decorator
-from utils.selenium_utils import type_onebyone
+from utils.selenium_utils import Selenium_utils
 from utils.bot_utils import Bot_utils
 
 
@@ -35,9 +35,12 @@ class Engine:
                 self.live_load = live_load
                 self.urls = urls
                 self.root_app = os.getcwd()
-                self.url_to_visit = list()
+                self.id_to_visit_list = list()
                 self.visited_this_session = list()
                 self.bot_utils = Bot_utils(trace=self.trace, log=self.log, jsprms=self.jsprms)
+
+                sel_utils_lib = self.live_load('utils.selenium_utils')
+                self.sel_utils = sel_utils_lib.Selenium_utils(driver=self.driver, log=self.log, trace=self.trace, humanize=self.humanize)
 
         def testit(self):
                 print("teeet")
@@ -46,8 +49,9 @@ class Engine:
         def visit_users(self):
                 self.trace(inspect.stack()) 
                 base_url = self.urls.get_url('base')
-                miniprofile = self.urls.get_url('miniprofile')              
-                for profile in self.url_to_visit:  
+                miniprofile = self.urls.get_url('profile')              
+                # https://www.linkedin.com/in/gabriel-khalfa-84b75a2/
+                for profile in self.id_to_visit_list:  
                         if self.bot_utils.stop():
                                 break
                         url_profile = Template(miniprofile).substitute(base=base_url, profile=profile)                      
@@ -80,8 +84,8 @@ class Engine:
                         url = href.rsplit('/', 1)[1]
                         linkedin_id = url.split('?')[0]
                         # print(self.dbcontext.is_in_visited(url))
-                        if not self.dbcontext.is_in_visited(linkedin_id) and not (url in self.url_to_visit): 
-                                self.url_to_visit.append(url)
+                        if not self.dbcontext.is_in_visited(linkedin_id) and not (linkedin_id in self.id_to_visit_list): 
+                                self.id_to_visit_list.append(linkedin_id)
 
         # @_error_decorator
         def list_user_from_search(self):
@@ -99,31 +103,40 @@ class Engine:
         # @_error_decorator
         def do_search(self, keyword):
                 self.trace(inspect.stack()) 
-                sel_utils = self.live_load('utils.selenium_utils')
                 element = self.driver.find_element(By.CSS_SELECTOR, '#global-nav-typeahead > input')
-                sel_utils.type_onebyone(self.driver, self.humanize, element, keyword)
+                self.sel_utils.type_onebyone(element, keyword)
                 element.send_keys(Keys.RETURN)
                 self.humanize.wait_human(2,2)
 
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def click_next(self): 
-                self.trace(inspect.stack()) 
-                # http://allselenium.info/wait-for-elements-python-selenium-webdriver/
-                # wait for Fastrack menu item to appear, then click it
-                but_suivant = WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "[aria-label='Suivant']")))                
-                # but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")                        
-                but_suivant.click()                        
+                self.trace(inspect.stack())   
+                self.sel_utils.try_click(By.CSS_SELECTOR, "[aria-label='Suivant']", 10, 20)     
+                return       
+                print (f'READY STATE = {self.driver.execute_script("return document.readyState")}')
+                for i in range(10):
+                        try:
+                                # http://allselenium.info/wait-for-elements-python-selenium-webdriver/
+                                # wait for Fastrack menu item to appear, then click it
+                                but_suivant = WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "[aria-label='Suivant']")))                
+                                # but_suivant = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Suivant']")  
+                                print(f"but_suivant = {but_suivant}")                      
+                                but_suivant.click()
+                                break
+                        except Exception as e:                                
+                                self.log.lg(f"FAILED TO CLICK NEXT = {e}")                                 
+                                self.driver.refresh()
+                                                
 
         # @_error_decorator(False)  #il faut un false pour que l'appel marche en live load
         def search(self):                
                 self.trace(inspect.stack()) 
-
                 # keywordlist = self.dbcontext.get_keyword_list()
                 keywordlist = self.jsprms.prms['keywords']                
                 print(len(keywordlist))                
                 for kw in keywordlist:
                         self.log.lg(f"==>KEYWORD = {kw}")
-                        self.url_to_visit = list()
+                        self.id_to_visit_list = list()
                         self.driver.get(self.urls.get_url('base'))
                         self.humanize.wait_human(2, 1)
                         self.do_search(kw)
@@ -138,11 +151,11 @@ class Engine:
                                 # if wk == 'b':
                                 #        break
                                 self.click_next()
-                                
+
                                 self.humanize.wait_human(5, 5)
                         print("#### List to visit #####")
-                        for vis in self.url_to_visit:
-                                print(vis)
+                        # for vis in self.id_to_visit_list:
+                        #        print(vis)
                         self.bot_utils.remove_stop()
                         self.visit_users()                        
                 self.log.lg(f"TOTAL VISITED THIS SESSION = {len(self.visited_this_session)}")
