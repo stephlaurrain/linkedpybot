@@ -7,9 +7,10 @@
     "keep_log_unit":"m",   
     "urls": [
         {"name":"base", "url":"https://www.linkedin.com"},
-        {"name":"miniprofile", "url":"$base/in/$profile"}],
+        {"name":"feed", "url":"$base/feed/"},
+        {"name":"profile", "url":"$base/in/$profile/"}],
     "keywords": [
-            "cabinet recrutement it"
+            "chargé de recrutement it"
     ],
     "visit_limit":15,
     "login":"test@test.com",
