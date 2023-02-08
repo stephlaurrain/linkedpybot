@@ -167,6 +167,10 @@ class Bot:
                         if (command == "test"):
                                 engine.testit()                                
                                 wk = input("waiting : ")
+                        if (command == "get_visited_list"):
+                                visitedlist = self.dbcontext.get_visited_list()
+                                self.log.lg("Visited list")
+                                for visited in visitedlist: print(f"{visited}")
                         if (command == "reinit_visited"):
                                 self.dbcontext.clean_visited()
                         if (command == "get_visited_stats"):

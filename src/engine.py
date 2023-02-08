@@ -60,7 +60,7 @@ class Engine:
                         self.visited_this_session.append(linkedin_id)
                         visited = self.dbcontext.get_visited_obj()
                         visited.linkedin_id = linkedin_id
-                        # print(url_profile)
+                        print(url_profile)
                         visited.date_visit = datetime.now()               
                         # print(visited)                        
                         self.dbcontext.add_to_visited(visited)
@@ -84,8 +84,12 @@ class Engine:
                         url = href.rsplit('/', 1)[1]
                         linkedin_id = url.split('?')[0]
                         # print(self.dbcontext.is_in_visited(url))
-                        if not self.dbcontext.is_in_visited(linkedin_id) and not (linkedin_id in self.id_to_visit_list): 
+                        if not self.dbcontext.is_in_visited(linkedin_id) and not (linkedin_id in self.id_to_visit_list):                                 
                                 self.id_to_visit_list.append(linkedin_id)
+                                if len(self.id_to_visit_list) >= self.jsprms.prms['fetch_limit']:
+                                        self.log.lg(f"reached fetch limit")
+                                        return False
+                return True
 
         # @_error_decorator
         def list_user_from_search(self):
@@ -149,15 +153,21 @@ class Engine:
                         self.list_user_from_search()
                         self.humanize.wait_human(3, 3)
                         # self.dbcontext.session.rollback()
-                        nb_page = self.jsprms.prms['result_page_nb']
-                        for i in range(nb_page):
-                                self.get_users_links()                        
+                        # nb_page = self.jsprms.prms['result_page_nb']
+                        max_page_nb = self.jsprms.prms['max_page_nb']
+                        page = 0
+                        while page < max_page_nb:
+                                self.log.lg(f"page = {page}")
+                                if not self.get_users_links():
+                                        break                        
                                 # wk = input("analyse (b to break) : ")
                                 # if wk == 'b':
                                 #        break
                                 self.click_next()
-
+                                
+                                page+=1
                                 self.humanize.wait_human(5, 5)
+
                         print("#### List to visit #####")
                         # for vis in self.id_to_visit_list:
                         #        print(vis)

@@ -25,7 +25,7 @@ class Dbcontext:
         return Visited()
     # get all
     def get_visited_list(self):
-        return self.session.query(Visited).order_by(Visited.score).all()
+        return self.session.query(Visited).order_by(Visited.date_visit).all()
 
     #EXEMPLE DE CASE, de STRFTOME et de count sur SQLALCHEMY
     # desc : order_by( Visited.date_first_visit.desc()).all()
