@@ -1,2 +1,3 @@
 selenium==4.5.0
 SQLAlchemy==1.4.41
+webdriver_manager>=0.0

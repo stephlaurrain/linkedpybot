@@ -8,11 +8,33 @@ get libraries :
 https://github.com/stephlaurrain/pylibs
 copy them into the application root directory (dir is "utils")
 
-## Install dependencies
+# On arch or py 
+install chromedriver :
 
+## py
+```
+apt get chromium-chromedriver
+```
+## arch
+```
+pacman -S chromium-chromedriver
+```
+
+# virtual env (if needed)
+
+## Create virtual env
+```
+python3 -m venv env
+```
+## Activate virtual env 
+```
+source env/bin/activate
+```
+## Install dependencies
+```
 cd src
 pip3 install -r requirements.txt
-
+```
 # usage
 
 ## parameters 
@@ -30,11 +52,20 @@ fetch_limit : number of profiles to fetch while getting profiles
 
 
 ## launch
-
+```
 cd src
+```
 
+don't forget to initiate venv if needed by
+```
+source env/bin/activate
+```
+
+```
 launch menu.sh : 
 ./menu.sh
+```
+
 
 ## menu 
 
