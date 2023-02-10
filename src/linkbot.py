@@ -18,7 +18,7 @@ from selenium.webdriver.common.keys import Keys
 import utils.file_utils as file_utils
 import utils.mylog as mylog
 import utils.jsonprms as jsonprms
-import utils.img_utils as img_utils
+# import utils.img_utils as img_utils
 from utils.humanize import Humanize
 from dalib.dbcontext import Dbcontext
 from utils.urls import Urls
@@ -59,12 +59,15 @@ class Bot:
                         options.add_argument("--disable-dev-shm-usage")
                         options.add_argument("--disable-gpu")
                         prefs = {"profile.managed_default_content_settings.images": 2}  
-                        options.add_experimental_option("prefs", prefs)                           
+                        options.add_experimental_option("prefs", prefs)                                                   
                 else:
                         prefs = {"profile.managed_default_content_settings.images": 1}
-                        options.add_experimental_option("prefs", prefs)                           
-                # options.add_argument(f"user-agent={self.jsprms.prms['user_agent']}")                
-                driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)                                  
+                        options.add_experimental_option("prefs", prefs)
+                if (self.jsprms.prms['driver_by_path']):
+                        driver = webdriver.Chrome(executable_path=self.chromedriver_bin_path, options=options)
+                else:
+                        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+                # options.add_argument(f"user-agent={self.jsprms.prms['user_agent']}") 
                 driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
                 # resolve the unreachable
                 # driver.set_window_size(1900, 1080)
