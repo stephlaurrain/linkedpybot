@@ -20,15 +20,17 @@ import utils.file_utils as file_utils
 from utils.urls import Urls
 from utils.mydecorators import _error_decorator
 from utils.selenium_utils import Selenium_utils
-from utils.bot_utils import Bot_utils
+from utils.stopper import Stopper
 
 
 class Engine:
 
-        def __init__(self, trace, log, jsprms, dbcontext, driver, humanize, live_load, urls):
+        def __init__(self, root_app, trace, log, jsprms, stopper, dbcontext, driver, humanize, live_load, urls):
+                self.root_app = root_app
                 self.trace = trace
                 self.log = log
                 self.jsprms = jsprms
+                self.stopper = stopper
                 self.dbcontext = dbcontext
                 self.driver = driver
                 self.humanize = humanize
@@ -36,9 +38,7 @@ class Engine:
                 self.urls = urls
                 self.root_app = os.getcwd()
                 self.id_to_visit_list = list()
-                self.visited_this_session = list()
-                self.bot_utils = Bot_utils(trace=self.trace, log=self.log, jsprms=self.jsprms)
-
+                self.visited_this_session = list()                
                 sel_utils_lib = self.live_load('utils.selenium_utils')
                 self.sel_utils = sel_utils_lib.Selenium_utils(driver=self.driver, log=self.log, trace=self.trace, humanize=self.humanize)
 
@@ -52,7 +52,7 @@ class Engine:
                 miniprofile = self.urls.get_url('profile')              
                 # https://www.linkedin.com/in/gabriel-khalfa-84b75a2/
                 for profile in self.id_to_visit_list:  
-                        if self.bot_utils.stop():
+                        if self.stopper.stop():
                                 break
                         url_profile = Template(miniprofile).substitute(base=base_url, profile=profile)                      
                         self.driver.get(url_profile)
@@ -171,6 +171,6 @@ class Engine:
                         print("#### List to visit #####")
                         # for vis in self.id_to_visit_list:
                         #        print(vis)
-                        self.bot_utils.remove_stop()
+                        self.stopper.remove_stop()
                         self.visit_users()                        
                 self.log.lg(f"TOTAL VISITED THIS SESSION = {len(self.visited_this_session)}")

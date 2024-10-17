@@ -20,6 +20,7 @@ import utils.mylog as mylog
 import utils.jsonprms as jsonprms
 # import utils.img_utils as img_utils
 from utils.humanize import Humanize
+from utils.stopper import Stopper
 from dalib.dbcontext import Dbcontext
 from utils.urls import Urls
 from utils.mydecorators import _error_decorator
@@ -40,9 +41,7 @@ class Bot:
         # init
         @_error_decorator()
         def init_webdriver(self):
-                self.trace(inspect.stack())
-                if self.driver != None:
-                        return 
+                self.trace(inspect.stack())                
                 options = webdriver.ChromeOptions()
                 if (self.jsprms.prms['headless']):
                         options.add_argument("--headless")
@@ -96,7 +95,7 @@ class Bot:
         def init_main(self, jsonfile):
                 try:
                         self.root_app = os.getcwd()
-                        self.log = mylog.Log()
+                        self.log = mylog.Log(self.root_app)
                         self.log.init(jsonfile)
                         self.trace(inspect.stack())
                         jsonFn = f"{self.root_app}{os.path.sep}data{os.path.sep}conf{os.path.sep}{jsonfile}.json"                        
@@ -107,9 +106,8 @@ class Bot:
                         self.password = self.jsprms.prms['password']
                         self.log.lg("=HERE WE GO=")                        
                         self.remove_logs()
-                        self.dbcontext = self.get_db_context(self.jsprms.prms['dbpath'])
-                        self.log.lg(f"Visited so far {self.dbcontext.visited_count()}")
-                        self.log.lg("=Here I am=")                                                  
+                        
+                                               
                 except Exception as e:
                         self.log.errlg(f"Wasted ! : {e}")
                         raise
@@ -154,13 +152,14 @@ class Bot:
                         # if (command == "conv"):
                         #        img_utils.convert_dir_to_webp(f"{self.root_app}{os.path.sep}data{os.path.sep}results", rm_source=True)
                         #        exit()              
-                        
-                        humanize = Humanize(self.trace, self.log, self.jsprms.prms['offset_wait'], self.jsprms.prms['wait'], self.jsprms.prms['default_wait'])                       
-                        urls = Urls(self.jsprms.prms['urls'])  
-                        
+                        dbcontext = self.get_db_context(self.jsprms.prms['dbpath'])                        
+                        stopper = Stopper(self.root_app, self.trace, self.log)
+                        humanize = Humanize(self.root_app, self.trace, self.log, stopper, self.jsprms.prms['offset_wait'], self.jsprms.prms['wait'], self.jsprms.prms['default_wait'])                       
+                        urls = Urls(self.jsprms.prms['urls'])                          
                         engine_mod = self.live_load('engine')
-                        engine = engine_mod.Engine(self.trace, self.log, self.jsprms, self.dbcontext, self.driver, humanize, self.live_load, urls)                                                
-                        
+                        engine = engine_mod.Engine(self.root_app, self.trace, self.log, self.jsprms, stopper, dbcontext, self.driver, humanize, self.live_load, urls)                                                
+                        self.log.lg(f"Visited so far {dbcontext.visited_count()}")
+                        self.log.lg("=Here I am=")   
                         if (command == "simplyconnect"):
                                 self.driver.get(urls.get_url('base'))
                                 wk = input("waiting : ")
@@ -171,20 +170,20 @@ class Bot:
                                 engine.testit()                                
                                 wk = input("waiting : ")
                         if (command == "get_visited_list"):
-                                visitedlist = self.dbcontext.get_visited_list()
+                                visitedlist = dbcontext.get_visited_list()
                                 self.log.lg("Visited list")
                                 for visited in visitedlist: print(f"{visited}")
                         if (command == "reinit_visited"):
-                                self.dbcontext.clean_visited()
+                                dbcontext.clean_visited()
                         if (command == "get_visited_stats"):
-                                visited_stats = self.dbcontext.get_visited_stats()
+                                visited_stats = dbcontext.get_visited_stats()
                                 for visited in visited_stats:
                                         print(f"{visited}")
                         if (command == "add_to_keyword"):
-                                if (not self.dbcontext.is_in_keyword(param1)):
-                                        self.dbcontext.add_to_keyword(param1)
+                                if (not dbcontext.is_in_keyword(param1)):
+                                        dbcontext.add_to_keyword(param1)
                         if (command == "get_keyword_list"):
-                                keywordlist = self.dbcontext.get_keyword_list()
+                                keywordlist = dbcontext.get_keyword_list()
                                 self.log.lg("Keyword list")
                                 for kw in keywordlist:
                                         print(f"{kw.word}")

@@ -1,1 +1,1 @@
-python3 menu.py default
+source env/bin/activate && python3 menu.py default
